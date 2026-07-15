@@ -1,4 +1,4 @@
-const CACHE_NAME = 'oh-shit-tabulator-v1';
+const CACHE_NAME = 'oh-shit-tabulator-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -24,7 +24,30 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  const req = event.request;
+  const isPage = req.mode === 'navigate' || (req.method === 'GET' && req.headers.get('accept')?.includes('text/html'));
+
+  if (isPage) {
+    // Network-first: always get the latest app shell when online.
+    // Falls back to the cached copy only when offline.
+    event.respondWith(
+      fetch(req)
+        .then((response) => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
+          return response;
+        })
+        .catch(() => caches.match(req))
+    );
+    return;
+  }
+
+  // Cache-first for static assets (icons, manifest) - fast and fine to stay stale
   event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request))
+    caches.match(req).then((cached) => cached || fetch(req).then((response) => {
+      const copy = response.clone();
+      caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
+      return response;
+    }))
   );
 });

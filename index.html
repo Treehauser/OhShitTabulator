@@ -121,6 +121,22 @@
         input:focus { outline: none; border-color: var(--brass); box-shadow: 0 0 0 3px rgba(184,134,59,0.22); }
         input:focus-visible { outline: none; }
 
+        .num-wrap { position: relative; }
+        .num-wrap input[type="number"] { width: 100%; padding-right: 24px; }
+        .stepper-btns {
+            position: absolute; top: 2px; right: 2px; bottom: 2px; width: 20px;
+            display: flex; flex-direction: column; justify-content: center; gap: 1px;
+            opacity: 0; pointer-events: none; transition: opacity 0.12s ease;
+        }
+        .num-wrap:focus-within .stepper-btns { opacity: 1; pointer-events: auto; }
+        .step-btn {
+            width: 20px; height: 15px; padding: 0; margin: 0; border: none; border-radius: 3px;
+            background: var(--paper-dim); color: var(--brass); font-size: 0.55rem; line-height: 1;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+        }
+        .step-btn:active { background: var(--brass); color: var(--paper); transform: none; }
+        .step-btn:focus-visible { outline: none; }
+
         button {
             width: 100%; padding: 15px; border: none; border-radius: 7px; font-family: 'Inter', sans-serif;
             font-weight: 600; font-size: 1rem; letter-spacing: 0.2px; cursor: pointer; margin-top: 8px;
@@ -298,6 +314,14 @@
 
     function validateNonNegative(input) {
         if (input.value < 0) input.value = 0;
+    }
+
+    function stepValue(btn, delta) {
+        const input = btn.closest('.num-wrap').querySelector('input');
+        if (input.disabled) return;
+        const next = Math.max(0, (parseInt(input.value, 10) || 0) + delta);
+        input.value = next;
+        input.dispatchEvent(new Event('input'));
     }
 
     function saveGameState() {
@@ -485,8 +509,20 @@
                     <span class="player-name">
                         ${isDealer ? '<span class="chip chip-dealer">D</span>' : (isFirstBid ? '<span class="chip chip-bidder">B</span>' : '<span class="chip-spacer"></span>')}${p.name}
                     </span>
-                    <input type="number" class="bid-in" value="0" min="0" tabindex="${i+1}" oninput="validateNonNegative(this)" onfocus="this.select()" onclick="this.select()" ${isMisere ? 'disabled style="opacity:0.2"' : ''}>
-                    <input type="number" class="trick-in hidden" value="0" min="0" tabindex="${i+1+players.length}" oninput="validateNonNegative(this)" onfocus="this.select()" onclick="this.select()">
+                    <div class="num-wrap">
+                        <input type="number" class="bid-in" value="0" min="0" tabindex="${i+1}" oninput="validateNonNegative(this)" onfocus="this.select()" onclick="this.select()" ${isMisere ? 'disabled style="opacity:0.2"' : ''}>
+                        <div class="stepper-btns">
+                            <button type="button" class="step-btn" onmousedown="event.preventDefault()" onclick="stepValue(this, 1)">▲</button>
+                            <button type="button" class="step-btn" onmousedown="event.preventDefault()" onclick="stepValue(this, -1)">▼</button>
+                        </div>
+                    </div>
+                    <div class="num-wrap trick-wrap hidden">
+                        <input type="number" class="trick-in" value="0" min="0" tabindex="${i+1+players.length}" oninput="validateNonNegative(this)" onfocus="this.select()" onclick="this.select()">
+                        <div class="stepper-btns">
+                            <button type="button" class="step-btn" onmousedown="event.preventDefault()" onclick="stepValue(this, 1)">▲</button>
+                            <button type="button" class="step-btn" onmousedown="event.preventDefault()" onclick="stepValue(this, -1)">▼</button>
+                        </div>
+                    </div>
                 </div>`;
         });
         startTimer();
@@ -507,7 +543,7 @@
         document.getElementById('error-display').classList.add('hidden');
         document.getElementById('lock-btn').classList.add('hidden');
         document.getElementById('submit-btn').classList.remove('hidden');
-        document.querySelectorAll('.tk-label, .trick-in').forEach(el => el.classList.remove('hidden'));
+        document.querySelectorAll('.tk-label, .trick-wrap').forEach(el => el.classList.remove('hidden'));
         for (let b of bids) b.disabled = true;
     }
 
