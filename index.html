@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Maywood Oh Shit!">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#1e3d32">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+    
+    <title>Maywood Oh, Shit! Tabulator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --felt: #1e3d32;
+            --felt-deep: #12281f;
+            --felt-line: rgba(255,255,255,0.07);
+            --paper: #f2e9d4;
+            --paper-dim: #e6d9b8;
+            --ink: #26241c;
+            --ink-soft: #7a725e;
+            --brass: #b8863b;
+            --brass-bright: #d9ab5c;
+            --ruby: #9c3b3b;
+            --ruby-bright: #c15252;
+            --positive: #2f6b4f;
+
+            /* legacy aliases kept so inline styles in the markup below resolve correctly */
+            --error: var(--ruby);
+            --secondary: var(--positive);
+            --primary: var(--brass);
+            --accent: var(--brass-bright);
+            --text: var(--paper);
+            --bg-color: var(--felt-deep);
+            --card-bg: var(--paper);
+            --border: var(--paper-dim);
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body {
+            overscroll-behavior-y: contain;
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            color: var(--paper);
+            margin: 0;
+            padding: env(safe-area-inset-top) 10px 32px 10px;
+            display: flex; flex-direction: column; align-items: center;
+            background-color: var(--felt);
+            background-image:
+                radial-gradient(circle at 50% -10%, rgba(255,255,255,0.06), transparent 55%),
+                repeating-linear-gradient(45deg, rgba(255,255,255,0.015) 0 2px, transparent 2px 7px),
+                linear-gradient(180deg, var(--felt) 0%, var(--felt-deep) 100%);
+        }
+
+        .container { width: 100%; max-width: 500px; }
+        .hidden { display: none !important; }
+
+        /* --- Header / nameplate --- */
+        .header { text-align: center; margin: 10px 0 22px; }
+        .eyebrow {
+            font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; font-weight: 600;
+            letter-spacing: 3px; text-transform: uppercase; color: var(--brass-bright); opacity: 0.9;
+        }
+        h1 {
+            font-family: 'Fraunces', serif; font-weight: 600; font-style: italic;
+            color: var(--paper); font-size: 2.1rem; line-height: 1; margin: 6px 0 0;
+        }
+        .subtitle {
+            font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; letter-spacing: 2px;
+            text-transform: uppercase; color: var(--felt-line); color: rgba(242,233,212,0.55); margin-top: 8px;
+        }
+        .suit-divider {
+            margin: 14px auto 0; color: var(--brass); font-size: 0.85rem; letter-spacing: 10px; opacity: 0.75;
+        }
+
+        /* --- Cards (scorecard panels) --- */
+        .card {
+            background: var(--paper); color: var(--ink);
+            padding: 18px 16px 16px; border-radius: 4px 4px 10px 10px;
+            box-shadow: 0 10px 24px rgba(0,0,0,0.35), 0 1px 0 rgba(255,255,255,0.4) inset;
+            margin: 22px 0 16px; position: relative;
+        }
+        .card::before {
+            content: ''; position: absolute; top: -7px; left: 0; right: 0; height: 14px;
+            background-image: radial-gradient(circle, var(--felt-deep) 3.4px, transparent 3.6px);
+            background-size: 18px 14px; background-position: 4px 0; background-repeat: repeat-x;
+        }
+        .card::after {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+            background: linear-gradient(90deg, var(--brass), var(--brass-bright), var(--brass));
+        }
+
+        h2 {
+            font-family: 'Fraunces', serif; font-weight: 600; color: var(--ink);
+            font-size: 1.05rem; margin: 0 0 14px; padding-bottom: 9px;
+            border-bottom: 1px solid var(--paper-dim); position: relative;
+        }
+        h2::after {
+            content: ''; position: absolute; left: 0; bottom: -1px; width: 34px; height: 2px; background: var(--brass);
+        }
+
+        input[type="text"], input[type="number"] {
+            width: 100%; padding: 12px; background: #fffdf8; border: 1px solid var(--paper-dim);
+            color: var(--ink); border-radius: 6px; font-size: 1.05rem; box-sizing: border-box;
+            appearance: none; -webkit-appearance: none;
+        }
+        input[type="text"] { font-family: 'Inter', sans-serif; }
+        input[type="number"] { font-family: 'IBM Plex Mono', monospace; font-weight: 600; }
+        input:focus { outline: none; border-color: var(--brass); box-shadow: 0 0 0 3px rgba(184,134,59,0.22); }
+        input:focus-visible { outline: none; }
+
+        button {
+            width: 100%; padding: 15px; border: none; border-radius: 7px; font-family: 'Inter', sans-serif;
+            font-weight: 600; font-size: 1rem; letter-spacing: 0.2px; cursor: pointer; margin-top: 8px;
+            -webkit-tap-highlight-color: transparent; transition: transform 0.08s ease, filter 0.15s ease;
+        }
+        button:active { transform: scale(0.98); }
+        button:focus-visible { outline: 3px solid var(--brass-bright); outline-offset: 2px; }
+
+        .btn-primary { background-color: var(--brass); color: #211a0e; }
+        .btn-primary:hover { filter: brightness(1.06); }
+        .btn-secondary { background-color: transparent; color: var(--felt); border: 2px solid var(--felt); }
+        .btn-lock { background-color: var(--felt); color: var(--paper); }
+        .btn-lock:hover { filter: brightness(1.15); }
+        .btn-undo {
+            background-color: transparent; color: var(--ink-soft); border: 1px solid var(--paper-dim);
+            font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; padding: 10px; margin-bottom: 12px;
+        }
+        .btn-danger {
+            background-color: transparent; border: 1px solid var(--ruby); color: var(--ruby);
+            font-size: 0.8rem; padding: 10px;
+        }
+
+        .setup-row { display: flex; gap: 6px; margin-bottom: 8px; align-items: center; }
+        .order-btns { display: flex; flex-direction: column; gap: 2px; }
+        .order-btn {
+            padding: 0; font-size: 0.7rem; background: var(--ink); color: var(--paper);
+            border-radius: 4px; border: none; width: 42px; height: 30px; font-family: 'IBM Plex Mono', monospace;
+        }
+
+        /* --- Chip badges (dealer / first bidder signature element) --- */
+        .chip {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 20px; height: 20px; border-radius: 50%; margin-right: 7px; flex-shrink: 0;
+            font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; font-weight: 700; color: var(--paper);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.3), inset 0 0 0 2px rgba(255,255,255,0.18);
+        }
+        .chip-dealer { background: var(--brass); }
+        .chip-bidder { background: var(--ruby); }
+        .chip-spacer { display: inline-block; width: 27px; }
+
+        .active-dealer { background: rgba(184,134,59,0.10); border-left: 3px solid var(--brass); padding-left: 6px; border-radius: 0 4px 4px 0; }
+        .first-bidder { background: rgba(156,59,59,0.08); border-left: 3px solid var(--ruby); padding-left: 6px; border-radius: 0 4px 4px 0; }
+
+        .round-header { text-align: center; margin-bottom: 14px; position: relative; }
+        .special-rule {
+            color: var(--ruby); font-weight: 700; font-size: 0.95rem; display: inline-block;
+            margin-top: 4px; padding: 3px 10px; border: 1px solid var(--ruby); border-radius: 20px;
+        }
+        .timer-display { font-family: 'IBM Plex Mono', monospace; color: var(--ink-soft); font-size: 0.85rem; margin-top: 8px; }
+        .progress-track { height: 3px; background: var(--paper-dim); border-radius: 2px; margin-top: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--brass), var(--brass-bright)); }
+
+        .player-row { display: grid; grid-template-columns: 2.2fr 1fr 1fr; gap: 8px; align-items: center; margin-bottom: 8px; padding: 6px 0; }
+        .player-name { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; }
+
+        .leaderboard-table { width: 100%; border-collapse: collapse; font-family: 'IBM Plex Mono', monospace; font-size: 0.92rem; }
+        .leaderboard-table td { padding: 10px 6px; border-bottom: 1px solid var(--paper-dim); }
+        .leaderboard-table tr:first-child td { background: rgba(184,134,59,0.12); font-weight: 700; }
+        .rank { width: 24px; color: var(--brass); font-weight: 700; }
+
+        .history-item {
+            font-family: 'Inter', sans-serif; font-size: 0.82rem; background: #fffdf8;
+            border-left: 4px solid var(--brass); padding: 10px 12px; margin-bottom: 10px;
+            border-radius: 0 8px 8px 0; color: var(--ink); box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .history-item strong { font-family: 'Fraunces', serif; font-weight: 600; }
+        .history-grid { font-family: 'IBM Plex Mono', monospace; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 4px; margin-top: 6px; color: var(--ink-soft); font-size: 0.8rem; }
+        .history-header { font-weight: 700; color: var(--ink); border-bottom: 1px solid var(--paper-dim); margin-bottom: 4px; padding-bottom: 3px; }
+        .error-msg {
+            color: var(--ruby); font-size: 0.9rem; text-align: center; margin-top: 10px; font-weight: 600;
+            padding: 10px; background: rgba(156,59,59,0.08); border: 1px solid rgba(156,59,59,0.3); border-radius: 8px;
+        }
+
+        .verify-list { list-style: none; padding: 0; margin: 15px 0; }
+        .verify-list li { padding: 11px 2px; border-bottom: 1px solid var(--paper-dim); display: flex; align-items: center; font-family: 'Inter', sans-serif; }
+        .verify-legend { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; color: var(--ink-soft); display: flex; gap: 16px; }
+
+        .footer { margin-top: 34px; margin-bottom: 20px; font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; color: rgba(242,233,212,0.4); text-align: center; letter-spacing: 0.5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div class="eyebrow">Maywood Game Night</div>
+        <h1>Oh, Shit!</h1>
+        <div class="subtitle">Score Tabulator</div>
+        <div class="suit-divider">♠ ♥ ♦ ♣</div>
+    </div>
+
+    <div id="setup-screen" class="card">
+        <h2>Player Order & Setup</h2>
+        <div id="player-inputs"></div>
+        <button class="btn-secondary" onclick="addPlayerInput()" id="add-btn">+ Add Player</button>
+        <button class="btn-primary" onclick="showVerification()">Start Game</button>
+    </div>
+
+    <div id="verify-screen" class="card hidden">
+        <h2>Confirm Seating Order</h2>
+        <div class="verify-legend"><span><span class="chip chip-dealer">D</span>Dealer</span><span><span class="chip chip-bidder">B</span>First bid</span></div>
+        <ul id="verify-list" class="verify-list"></ul>
+        <button class="btn-primary" onclick="startGame()">Correct - Let's Play!</button>
+        <button class="btn-secondary" style="background: transparent; color: var(--error); border: 1px solid var(--error);" onclick="backToSetup()">Change Order</button>
+    </div>
+
+    <div id="game-screen" class="card hidden">
+        <div class="round-header">
+            <span id="deal-info" style="font-size: 1.1rem; font-weight: bold;"></span><br>
+            <span id="rule-info" class="special-rule hidden"></span>
+            <div class="progress-track"><div id="progress-fill" class="progress-fill" style="width:0%"></div></div>
+            <div id="timer-text" class="timer-display">Round Time: 00:00</div>
+        </div>
+        <div id="scoring-area"></div>
+        <div id="error-display" class="error-msg hidden"></div>
+        <button id="lock-btn" class="btn-lock" onclick="lockBids()">Lock In Bids</button>
+        <button id="submit-btn" class="btn-primary hidden" onclick="submitRound()">Submit Round</button>
+    </div>
+
+    <div id="leaderboard-screen" class="card hidden">
+        <h2>Standings</h2>
+        <table class="leaderboard-table" id="leaderboard-body"></table>
+    </div>
+
+    <div id="history-screen" class="card hidden">
+        <h2>History</h2>
+        <button id="undo-btn" class="btn-undo hidden" onclick="undoLastRound()">↩ Undo Last Round</button>
+        <div id="history-log"></div>
+        <button id="danger-btn" class="btn-danger" style="margin-top: 30px" onclick="hardReset()">NEW GAME (WIPE ALL DATA)</button>
+    </div>
+
+    <div class="footer">Version-14012026-2022UTC</div>
+</div>
+
+<script>
+    let players = [];
+    let currentIdx = 0;
+    let history = [];
+    let setupNames = ["", "", ""];
+    let dealerIdx = 0;
+    let timerInterval;
+    let secondsElapsed = 0;
+    let gameInProgress = false;
+
+    const gameRounds = [
+        { cards: 1, rule: "Standard" }, { cards: 2, rule: "Standard" }, { cards: 3, rule: "Standard" },
+        { cards: 4, rule: "Standard" }, { cards: 5, rule: "Standard" }, { cards: 6, rule: "Standard" },
+        { cards: 7, rule: "Standard" }, { cards: 7, rule: "Half-Blind" }, { cards: 7, rule: "Full-Blind" },
+        { cards: 7, rule: "No Trump" }, { cards: 7, rule: "Misere" }, { cards: 7, rule: "Standard" },
+        { cards: 6, rule: "Standard" }, { cards: 5, rule: "Standard" }, { cards: 4, rule: "Standard" },
+        { cards: 3, rule: "Standard" }, { cards: 2, rule: "Standard" }, { cards: 1, rule: "Standard" }
+    ];
+
+    function startTimer() {
+        clearInterval(timerInterval);
+        secondsElapsed = 0;
+        updateTimerDisplay();
+        timerInterval = setInterval(() => { secondsElapsed++; updateTimerDisplay(); }, 1000);
+    }
+
+    function updateTimerDisplay() {
+        const mins = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+        const secs = String(secondsElapsed % 60).padStart(2, '0');
+        const t = document.getElementById('timer-text');
+        if (t) t.innerText = `Round Time: ${mins}:${secs}`;
+    }
+
+    function validateNonNegative(input) {
+        if (input.value < 0) input.value = 0;
+    }
+
+    function saveGameState() {
+        try {
+            const state = { players, currentIdx, history, setupNames, dealerIdx, gameInProgress };
+            localStorage.setItem('maywoodOhShitState', JSON.stringify(state));
+        } catch (e) {
+            console.log("Local storage not available");
+        }
+    }
+
+    function loadGameState() {
+        try {
+            const saved = localStorage.getItem('maywoodOhShitState');
+            if (!saved) return;
+            const state = JSON.parse(saved);
+            setupNames = state.setupNames || ["", "", ""];
+            if (state.gameInProgress) {
+                players = state.players;
+                currentIdx = state.currentIdx;
+                history = state.history;
+                dealerIdx = state.dealerIdx;
+                gameInProgress = true;
+                document.getElementById('setup-screen').classList.add('hidden');
+                ["game-screen", "leaderboard-screen", "history-screen"].forEach(id => document.getElementById(id).classList.remove('hidden'));
+                renderRound();
+                updateLeaderboard();
+                updateHistory();
+            }
+        } catch (e) {
+            console.log("Local storage not available");
+        }
+    }
+
+    function hardReset() {
+        if (confirm("Permanently delete this game and all history?")) {
+            try {
+                localStorage.clear();
+            } catch (e) {
+                console.log("Local storage not available");
+            }
+            window.location.reload();
+        }
+    }
+
+    function renderSetup() {
+        const container = document.getElementById('player-inputs');
+        container.innerHTML = '';
+        setupNames.forEach((name, i) => {
+            const row = document.createElement('div');
+            row.className = 'setup-row';
+            row.innerHTML = `
+                <div class="order-btns"><button class="order-btn" onclick="movePlayer(${i}, -1)">▲</button><button class="order-btn" onclick="movePlayer(${i}, 1)">▼</button></div>
+                <input type="text" placeholder="Player ${i+1}" value="${name}" oninput="updateName(${i}, this.value)">
+            `;
+            container.appendChild(row);
+        });
+        document.getElementById('add-btn').classList.toggle('hidden', setupNames.length >= 8);
+    }
+
+    function updateName(i, v) { setupNames[i] = v; saveGameState(); }
+    function addPlayerInput() { if (setupNames.length < 8) { setupNames.push(""); renderSetup(); saveGameState(); } }
+    function movePlayer(i, d) {
+        const n = i + d;
+        if (n >= 0 && n < setupNames.length) { [setupNames[i], setupNames[n]] = [setupNames[n], setupNames[i]]; renderSetup(); saveGameState(); }
+    }
+
+    function showVerification() {
+        const activeNames = setupNames.filter(n => n.trim() !== "");
+        if (activeNames.length < 2) return alert("Enter 2+ players!");
+        const list = document.getElementById('verify-list');
+        list.innerHTML = activeNames.map((name, i) => {
+            const isDealer = i === 0;
+            const isBidder = i === 1 % activeNames.length;
+            return `<li>
+                ${isDealer ? '<span class="chip chip-dealer">D</span>' : (isBidder ? '<span class="chip chip-bidder">B</span>' : '<span class="chip-spacer"></span>')}
+                <strong>${i + 1}.</strong> &nbsp; ${name} 
+            </li>`;
+        }).join('');
+        document.getElementById('setup-screen').classList.add('hidden');
+        document.getElementById('verify-screen').classList.remove('hidden');
+    }
+
+    function backToSetup() {
+        document.getElementById('verify-screen').classList.add('hidden');
+        document.getElementById('setup-screen').classList.remove('hidden');
+    }
+
+    function startGame() {
+        players = setupNames.filter(n => n.trim() !== "").map(n => ({ name: n.trim(), score: 0 }));
+        dealerIdx = 0; 
+        gameInProgress = true;
+        document.getElementById('verify-screen').classList.add('hidden');
+        ["game-screen", "leaderboard-screen", "history-screen"].forEach(id => document.getElementById(id).classList.remove('hidden'));
+        renderRound();
+        updateLeaderboard();
+        saveGameState();
+    }
+
+    function renderRound() {
+        const round = gameRounds[currentIdx];
+        document.getElementById('deal-info').innerText = `Round ${currentIdx+1}: Deal ${round.cards}`;
+        const ruleEl = document.getElementById('rule-info');
+        ruleEl.innerText = round.rule;
+        ruleEl.classList.toggle('hidden', round.rule === 'Standard');
+        document.getElementById('progress-fill').style.width = `${Math.round(((currentIdx) / gameRounds.length) * 100)}%`;
+        document.getElementById('lock-btn').classList.remove('hidden');
+        document.getElementById('submit-btn').classList.add('hidden');
+        document.getElementById('error-display').classList.add('hidden');
+
+        const area = document.getElementById('scoring-area');
+        area.innerHTML = `<div class="player-row" style="font-size:0.65rem; color:var(--ink-soft); font-weight:600; letter-spacing:0.5px; border:none; margin-bottom: 4px;"><span>PLAYER</span><span>BID</span><span class="tk-label hidden">TRICKS</span></div>`;
+
+        const bidderIdx = (dealerIdx + 1) % players.length;
+
+        players.forEach((p, i) => {
+            const isMisere = round.rule === "Misere";
+            const isDealer = (i === dealerIdx);
+            const isFirstBid = (i === bidderIdx);
+            
+            area.innerHTML += `
+                <div class="player-row ${isDealer ? 'active-dealer' : (isFirstBid ? 'first-bidder' : '')}">
+                    <span class="player-name">
+                        ${isDealer ? '<span class="chip chip-dealer">D</span>' : (isFirstBid ? '<span class="chip chip-bidder">B</span>' : '<span class="chip-spacer"></span>')}${p.name}
+                    </span>
+                    <input type="number" class="bid-in" value="0" min="0" tabindex="${i+1}" oninput="validateNonNegative(this)" onfocus="this.select()" onclick="this.select()" ${isMisere ? 'disabled style="opacity:0.2"' : ''}>
+                    <input type="number" class="trick-in hidden" value="0" min="0" tabindex="${i+1+players.length}" oninput="validateNonNegative(this)" onfocus="this.select()" onclick="this.select()">
+                </div>`;
+        });
+        startTimer();
+        if (round.rule === "Misere") lockBids();
+    }
+
+    function lockBids() {
+        const round = gameRounds[currentIdx];
+        const bids = document.getElementsByClassName('bid-in');
+        let totalBids = 0;
+        for (let b of bids) totalBids += parseInt(b.value) || 0;
+        if (round.rule !== "Misere" && round.cards > 3 && totalBids === round.cards) {
+            const err = document.getElementById('error-display');
+            err.innerText = `⚠️ Total bids cannot equal ${round.cards}! Current: ${totalBids}`;
+            err.classList.remove('hidden');
+            return;
+        }
+        document.getElementById('error-display').classList.add('hidden');
+        document.getElementById('lock-btn').classList.add('hidden');
+        document.getElementById('submit-btn').classList.remove('hidden');
+        document.querySelectorAll('.tk-label, .trick-in').forEach(el => el.classList.remove('hidden'));
+        for (let b of bids) b.disabled = true;
+    }
+
+    function submitRound() {
+        const round = gameRounds[currentIdx];
+        const tricks = document.getElementsByClassName('trick-in');
+        let totalTricks = 0;
+        for (let t of tricks) totalTricks += parseInt(t.value) || 0;
+        if (totalTricks !== round.cards) {
+            const err = document.getElementById('error-display');
+            err.innerText = `⚠️ Total tricks must be ${round.cards}! You entered: ${totalTricks}`;
+            err.classList.remove('hidden');
+            return;
+        }
+        const bids = document.getElementsByClassName('bid-in');
+        let roundResults = { roundName: `${round.rule} (${round.cards})`, scores: [] };
+        for (let i = 0; i < players.length; i++) {
+            const b = parseInt(bids[i].value) || 0;
+            const t = parseInt(tricks[i].value) || 0;
+            let pts = (round.rule === "Misere") ? (t === 7 ? 12 : (t === 0 ? 5 : -t)) : (b === t ? 5 + t : t);
+            players[i].score += pts;
+            roundResults.scores.push({ name: players[i].name, bid: b, tricks: t, points: pts });
+        }
+        history.unshift(roundResults);
+        currentIdx++;
+        dealerIdx = (dealerIdx + 1) % players.length;
+        saveGameState();
+        if (currentIdx < gameRounds.length) renderRound();
+        else { clearInterval(timerInterval); document.getElementById('game-screen').innerHTML = "<h2>Game Over!</h2>"; }
+        updateLeaderboard();
+        updateHistory();
+        window.scrollTo(0,0);
+    }
+
+    function undoLastRound() {
+        if (!history.length || !confirm("Undo last round?")) return;
+        const last = history.shift();
+        players.forEach(p => { const r = last.scores.find(s => s.name === p.name); if(r) p.score -= r.points; });
+        currentIdx--;
+        dealerIdx = (dealerIdx - 1 + players.length) % players.length;
+        saveGameState(); renderRound(); updateLeaderboard(); updateHistory();
+    }
+
+    function updateLeaderboard() {
+        const sorted = [...players].sort((a,b) => b.score - a.score);
+        document.getElementById('leaderboard-body').innerHTML = sorted.map((p, i) => `<tr><td class="rank">#${i+1}</td><td>${p.name}</td><td style="text-align:right"><strong>${p.score}</strong></td></tr>`).join('');
+    }
+
+    function updateHistory() {
+        const undo = document.getElementById('undo-btn');
+        if (undo) undo.classList.toggle('hidden', history.length === 0);
+        document.getElementById('history-log').innerHTML = history.map(entry => `
+            <div class="history-item">
+                <strong>${entry.roundName}</strong>
+                <div class="history-grid history-header"><span>Name</span><span>Bid</span><span>Trk</span><span>Pts</span></div>
+                ${entry.scores.map(s => `
+                    <div class="history-grid"><span>${s.name}</span><span>${entry.roundName.includes('Misere') ? '-' : s.bid}</span><span>${s.tricks}</span><span style="color:${s.points >= 5 ? 'var(--positive)' : (s.points < 0 ? 'var(--ruby)' : 'var(--ink)')}">${s.points > 0 ? '+' : ''}${s.points}</span></div>
+                `).join('')}
+            </div>
+        `).join('');
+    }
+
+    loadGameState();
+    renderSetup(); 
+
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js').catch((err) => {
+                console.log('Service worker registration failed:', err);
+            });
+        });
+    }
+</script>
+</body>
+</html>
