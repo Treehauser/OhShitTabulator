@@ -143,7 +143,16 @@
             font-size: 0.8rem; padding: 10px;
         }
 
-        .setup-row { display: flex; gap: 6px; margin-bottom: 8px; align-items: center; }
+        .setup-row-wrapper { position: relative; overflow: hidden; border-radius: 8px; margin-bottom: 8px; }
+        .setup-row-delete {
+            position: absolute; top: 0; right: 0; bottom: 0; width: 84px; border: none;
+            background: var(--ruby); color: var(--paper); font-family: 'Inter', sans-serif;
+            font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; justify-content: center;
+        }
+        .setup-row {
+            display: flex; gap: 6px; align-items: center; background: var(--paper);
+            position: relative; transition: transform 0.2s ease; touch-action: pan-y; padding: 1px 0;
+        }
         .order-btns { display: flex; flex-direction: column; gap: 2px; }
         .order-btn {
             padding: 0; font-size: 0.7rem; background: var(--ink); color: var(--paper);
@@ -338,19 +347,81 @@
         const container = document.getElementById('player-inputs');
         container.innerHTML = '';
         setupNames.forEach((name, i) => {
-            const row = document.createElement('div');
-            row.className = 'setup-row';
-            row.innerHTML = `
-                <div class="order-btns"><button class="order-btn" onclick="movePlayer(${i}, -1)">▲</button><button class="order-btn" onclick="movePlayer(${i}, 1)">▼</button></div>
-                <input type="text" placeholder="Player ${i+1}" value="${name}" oninput="updateName(${i}, this.value)">
+            const wrapper = document.createElement('div');
+            wrapper.className = 'setup-row-wrapper';
+            wrapper.innerHTML = `
+                <button class="setup-row-delete" onclick="removePlayer(${i})">Remove</button>
+                <div class="setup-row">
+                    <div class="order-btns"><button class="order-btn" onclick="movePlayer(${i}, -1)">▲</button><button class="order-btn" onclick="movePlayer(${i}, 1)">▼</button></div>
+                    <input type="text" placeholder="Player ${i+1}" value="${name}" oninput="updateName(${i}, this.value)">
+                </div>
             `;
-            container.appendChild(row);
+            container.appendChild(wrapper);
+            attachSwipeToDelete(wrapper.querySelector('.setup-row'));
         });
         document.getElementById('add-btn').classList.toggle('hidden', setupNames.length >= 8);
     }
 
+    const REVEAL_WIDTH = 84;
+
+    function attachSwipeToDelete(row) {
+        let startX = 0, startY = 0, currentX = 0, dragging = false, deciding = true, isHorizontal = false;
+
+        row.addEventListener('touchstart', (e) => {
+            closeOtherSwipedRows(row);
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+            currentX = parseFloat(row.dataset.openX || '0');
+            dragging = true; deciding = true; isHorizontal = false;
+            row.style.transition = 'none';
+        }, { passive: true });
+
+        row.addEventListener('touchmove', (e) => {
+            if (!dragging) return;
+            const dx = e.touches[0].clientX - startX;
+            const dy = e.touches[0].clientY - startY;
+            if (deciding) {
+                if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+                isHorizontal = Math.abs(dx) > Math.abs(dy);
+                deciding = false;
+            }
+            if (!isHorizontal) return;
+            e.preventDefault();
+            let next = currentX + dx;
+            next = Math.max(-REVEAL_WIDTH, Math.min(0, next));
+            row.style.transform = `translateX(${next}px)`;
+            row.dataset.dragX = next;
+        }, { passive: false });
+
+        row.addEventListener('touchend', () => {
+            if (!dragging) return;
+            dragging = false;
+            row.style.transition = 'transform 0.2s ease';
+            const dragX = parseFloat(row.dataset.dragX || row.dataset.openX || '0');
+            const openX = (dragX <= -REVEAL_WIDTH / 2) ? -REVEAL_WIDTH : 0;
+            row.style.transform = `translateX(${openX}px)`;
+            row.dataset.openX = openX;
+        });
+    }
+
+    function closeOtherSwipedRows(exceptRow) {
+        document.querySelectorAll('.setup-row').forEach((r) => {
+            if (r !== exceptRow && r.dataset.openX && r.dataset.openX !== '0') {
+                r.style.transition = 'transform 0.2s ease';
+                r.style.transform = 'translateX(0px)';
+                r.dataset.openX = '0';
+            }
+        });
+    }
+
     function updateName(i, v) { setupNames[i] = v; saveGameState(); }
     function addPlayerInput() { if (setupNames.length < 8) { setupNames.push(""); renderSetup(); saveGameState(); } }
+    function removePlayer(i) {
+        if (setupNames.length <= 1) return;
+        setupNames.splice(i, 1);
+        renderSetup();
+        saveGameState();
+    }
     function movePlayer(i, d) {
         const n = i + d;
         if (n >= 0 && n < setupNames.length) { [setupNames[i], setupNames[n]] = [setupNames[n], setupNames[i]]; renderSetup(); saveGameState(); }
